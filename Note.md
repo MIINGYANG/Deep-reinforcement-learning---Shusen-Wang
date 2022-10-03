@@ -125,6 +125,8 @@ Actor-Critic的作用：使Actor做出尽可能好的动作以提高状态价值
   使用$q_t$是标准算法，使用$\delta_t$是policy gradient with baseline，使用$\delta_t$效果更好，因为方差更小算法收敛更快
 
   什么是baseline？: 任何接近$q_t$的数都可以作为baseline，但这个baseline不能是动作$a_t$的函数
+  
+  用于计算$q_{t+1}$的$a_{t+1}$是随机抽样得到的
 
 Actor-Critic最终的目的是为了学习一个好的策略网络，训练结束后就不需要Critic网络
 
@@ -476,17 +478,33 @@ $V^i\left(s_t ; \boldsymbol{\theta}^1, \cdots, \boldsymbol{\theta}^n\right)=\mat
 
 ---
 
+#### Policy Gradient with Baseline
 
+策略梯度采用baseline降低方差，加快收敛
 
+**假设b是不依赖A的变量，$\mathbb{E}_{A \sim \pi}\left[b \cdot \frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}\right]=0$，证明得到策略梯度：**
+$$
+\begin{aligned}
+\mathbb{E}_{A \sim \pi}\left[b \cdot \frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}\right] &=b \cdot \mathbb{E}_{A \sim \pi}\left[\frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}\right] \\
+&=b \cdot \sum_a \pi(a \mid s ; \boldsymbol{\theta}) \cdot\left[\frac{1}{\pi(a \mid s ; \boldsymbol{\theta})} \cdot \frac{\partial \pi(a \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}\right] \\
+&=b \cdot \sum_a \frac{\partial \pi(a \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \\
+&=b \cdot \frac{\partial \sum_a \pi(a \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \\
+&=b \cdot \frac{\partial 1}{\partial \boldsymbol{\theta}}=0
+\end{aligned}
+$$
+策略梯度：
+$$
+\frac{\partial V_\pi(s)}{\partial \theta}=\mathbb{E}_{A \sim \pi}\left[\frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}, Q_\pi(s, A)\right]-\mathbb{E}_{A \sim \pi}\left[\frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} b\right]\\=\mathbb{E}_{A \sim \pi}\left[\frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}\left(Q_\pi(s, A)-b\right)\right]
+$$
+虽然添加$\mathbb{E}_{A \sim \pi}\left[b \cdot \frac{\partial \ln \pi(A \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}}\right]$没有改变$\frac{\partial V_\pi(s)}{\partial \theta}$的期望，但是改变了方差，如果b的值与$Q_\pi(s,a)$足够接近，方差小收敛快
 
+若b与$A_t$无关，每一时间步的梯度：
 
+$\frac{\partial V_\pi\left(s_t\right)}{\partial \boldsymbol{\theta}}=\mathbb{E}_{A_t \sim \pi}\left[\frac{\partial \ln \pi\left(A_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \cdot\left(Q_\pi\left(s_t, A_t\right)-b\right)\right]$
 
+b可以取$V_\pi(s_t)$，因为它接近于$Q_\pi(s_t,A_t)$但又与$A_t$无关
 
+---
 
-
-
-
-
-
-
+#### REINFORCE with Baseline
 
