@@ -634,3 +634,79 @@ A2C与REINFORCE的区别在于前者使用的回报部分来自于真实观测�
 
 ---
 
+#### Discrete VS Continuous Control
+
+将DQN用于连续动作可以考虑做离散化，网格化，动作的数量就对应网格点的数量
+
+<img src="/home/lmy/RL/DRL/images/12.png" alt="12" style="zoom:50%;" />
+
+
+
+缺陷：当动作的维度d很大时，网格法得到的动作数量会指数增长，造成维度灾难
+
+- 当动作维度较小时可采用网格法
+- 当动作维度大时采用：
+  1. Deterministic policy network (确定策略网络)
+  2. Stochastic policy network (随机策略网络)
+
+---
+
+#### Deterministic Policy Gradient (DPG)
+
+DPG是Actor-Critic方法
+
+策略网络：$a=\pi(s;\theta)$，输出的动作a是确定性的动作(实数或向量)
+
+价值网络：$q(s,a;w)$
+
+<img src="/home/lmy/RL/DRL/images/13.png" alt="13" style="zoom:50%;" />
+
+
+
+如何更新策略网络的步骤：
+
+目的：训练策略网络以做出价值网络认为高价值的动作
+
+DPG：$\mathbf{g}=\frac{\partial q(s, \pi(s ; \boldsymbol{\theta}) ; \mathbf{w})}{\partial \boldsymbol{\theta}}=\frac{\partial a}{\partial \boldsymbol{\theta}} \cdot \frac{\partial q(s, a ; \mathbf{w})}{\partial a}$ 
+
+梯度上升：$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta}+\beta \cdot \mathbf{g}$
+
+
+
+如何更新价值网络的步骤：
+
+1. 一个$transition(s_t,a_t,r_t,s_{t+1})$
+2. 价值网络估计：$q_t=q(s_t,a_t;w)$
+3. 价值网络对t+1时刻进行预测：$q_{t+1}=q\left(s_{t+1}, a_{t+1}^{\prime} ; \mathbf{w}\right)$, 有 $a_{t+1}^{\prime}=\pi\left(s_{t+1} ; \boldsymbol{\theta}\right), a_{t+1}^,$只是随机抽取，并没有真实发生
+4. TD error：$\delta_t=q_t-\left(r_t+\gamma \cdot q_{t+1}\right)$
+5. 更新： $\mathbf{w} \leftarrow \mathbf{w}-\alpha \cdot \delta_t \cdot \frac{\partial q\left(s_t, a_t ; \mathbf{w}\right)}{\partial \mathbf{w}}$
+
+TD error采用同一个网络得到$q_t和q_{t+1}$，这种自举的方式会导致低估或者高估，用另一个网络估计TD target：$r_t+\gamma \cdot q_{t+1}$能够取得更好的结果，因此得到：
+
+$q_t=q\left(s_t, a_t ; \mathbf{w}\right)$
+
+$q_{t+1}=q\left(s_{t+1}, a_{t+1}^{\prime} ; \mathbf{w}^{-}\right)$，有 $a_{t+1}^{\prime}=\pi\left(s_{t+1} ; \boldsymbol{\theta}^{-}\right)$
+
+即TD target完全由target网络得到
+
+如何更新target网络：
+
+$\mathbf{w}^{-} \leftarrow \tau \cdot \mathbf{w}+(1-\tau) \cdot \mathbf{w}^{-}$
+$\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdot \boldsymbol{\theta}^{-}  \ \ \ \ \ \  \tau\in(0,1)$       
+
+因为target网络使用了策略网络和价值网络的参数，因此还是会涉及到自举(bootstrapping)
+
+**随机策略与确定策略的不同：**
+
+![14](/home/lmy/RL/DRL/images/14.png)
+
+
+
+
+
+
+
+
+
+
+
