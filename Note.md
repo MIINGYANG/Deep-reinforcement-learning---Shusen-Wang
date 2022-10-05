@@ -700,13 +700,29 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 
 ![14](images/14.png)
 
+---
+
+#### Stochastic Policy for Continuous Control
+
+动作a属于正态分布：
+
+- 针对动作维度为1：$\pi(a \mid s)=\frac{1}{\sqrt{6.28} \sigma} \cdot \exp \left(-\frac{(a-\mu)^2}{2 \sigma^2}\right)$
+- 针对动作维度不为1，假设动作$\vec{a}中变量是独立的$：$\pi(\vec{a} \mid s)=\prod_{i=1}^d \frac{1}{\sqrt{6.28} \sigma_i} \cdot \exp \left(-\frac{\left(a_i-\mu_i\right)^2}{2 \sigma_i^2}\right)$
+
+需要解决：$\mu_i与\sigma_i$未知的问题
+
+采用神经网络$\mu(s;\theta^\mu)$近似$\vec{\mu}(s)$,但不使用神经网络近似$\vec{\sigma}(s)$，因为效果不好，更好的做法是近似$\rho_i=ln\sigma_i^2$，采用神经网络$\rho(s;\theta^\rho)$近似$\vec{\rho}$
+
+<img src="images/16.png" alt="16" style="zoom:50%;" />
 
 
 
+步骤：
 
-
-
-
+- 观测到一个状态s
+- 使用神经网络$\mu(s;\theta^ \mu)和\rho(s;\theta^\rho)$分别近似均值$\vec{\hat{\mu}}$和方差$\vec{\hat\rho}$
+- 计算$\hat{\sigma}_i^2=\exp \left(\hat{\rho}_i\right)$
+- 对$\vec a$中的$a_i$进行随机抽样，$a_i \sim \mathcal{N}\left(\hat{\mu}_i, \hat{\sigma}_i^2\right)$, for all $i=1, \cdots, d$
 
 
 
