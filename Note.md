@@ -512,6 +512,8 @@ $Q_\pi\left(s_t, a_t\right)=\mathbb{E}\left[U_t \mid s_t, a_t\right]$
 
 $\frac{\partial V_\pi\left(s_t\right)}{\partial \boldsymbol{\theta}}=\mathbb{E}_{A_t \sim \pi}\left[\frac{\partial \ln \pi\left(A_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \cdot\left(Q_\pi\left(s_t, A_t\right)-V_\pi(s_t)\right)\right]$
 
+*注意$\left(Q_\pi\left(s_t, A_t\right)-V_\pi(s_t)\right)$是个优势函数*
+
 因此$u_t$是$Q_\pi(s_t,a_t)$的无偏估计，可用来近似$Q_\pi(s_t,a_t)$   (REINFORCE)方法：
 
 - 观测轨迹：$s_t, a_t, r_t, s_{t+1}, a_{t+1}, r_{t+1}, \cdots, s_n, a_n, r_n$
@@ -552,29 +554,83 @@ $\frac{\partial \delta_t^2 / 2}{\partial \mathbf{w}}=\delta_t \cdot \frac{\parti
 
 $\mathbf{w} \leftarrow \mathbf{w}-\alpha \cdot \delta_t \cdot \frac{\partial v\left(s_t ; \mathbf{w}\right)}{\partial \mathbf{w}}$
 
+---
 
+#### Advantage Actor-Critic (A2C)
 
+策略网络：$\pi(a|s;\theta)$
 
+价值网络：$v(s;w)$，与传统Actor-Critic的价值网络为$q(s,a;w)$不同
 
+与REINFORCE不同之处在于采用TD算法进行单步更新：
 
+- 观测到一个$transition(s_t,a_t,r_t,s_{t+1})$
 
+- TD target: $y_t=r_t+\gamma \cdot v\left(s_{t+1} ; \mathbf{w}\right)$
 
+- TD error: $\delta_t=v\left(s_t ; \mathbf{w}\right)-y_t$      [预测(纯预测)-真实(包含真实回报)]
 
+- 更新策略网络：
 
+  $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta}-\beta \cdot \delta_t \cdot \frac{\partial \ln \pi\left(a_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}}$
 
+- 更新价值网络：
 
+  $\mathbf{w} \leftarrow \mathbf{w}-\alpha \cdot \delta_t \cdot \frac{\partial v\left(s_t ; \mathbf{w}\right)}{\partial \mathbf{w}}$
 
+从过去的推导可以得到： (这是针对所有的$s_{t+1}和a_{t+1}$)
 
+$Q_\pi\left(s_t, a_t\right)=\mathbb{E}_{S_{t+1}, A_{t+1}}\left[R_t+\gamma \cdot Q_\pi\left(S_{t+1}, A_{t+1}\right)\right]$
 
+把$A_{t+1}$放入括号里：
 
+$\begin{aligned} Q_\pi\left(s_t, a_t\right) &=\mathbb{E}_{S_{t+1}}\left[R_t+\gamma \cdot \mathbb{E}_{A_{t+1}}\left[Q_\pi\left(S_{t+1}, A_{t+1}\right)\right]\right] \\ &=\mathbb{E}_{S_{t+1}}\left[R_t+\gamma \cdot V_\pi\left(S_{t+1}\right)\right] \end{aligned}$
 
+得到定理1：$Q_\pi\left(s_t, a_t\right)=\mathbb{E}_{S_{t+1}}\left[R_t+\gamma \cdot V_\pi\left(S_{t+1}\right)\right]$
 
+由定义：
 
+$\begin{aligned} V_\pi\left(s_t\right) &=\mathbb{E}_{A_t}\left[Q_\pi\left(s_t, A_t\right)\right] \\ &=\mathbb{E}_{A_t}\left[\mathbb{E}_{S_{t+1}}\left[R_t+\gamma \cdot V_\pi\left(S_{t+1}\right)\right]\right] \end{aligned}$
 
+得到定理2：
 
+$V_\pi\left(s_t\right)=\mathbb{E}_{A_t, S_{t+1}}\left[R_t+\gamma \cdot V_\pi\left(S_{t+1}\right)\right]$
 
+即$s_t$时刻状态的价值只和得到的奖励与下一时刻状态的价值有关
 
+定理1可通过$Q_\pi\left(s_t, a_t\right) \approx r_t+\gamma \cdot V_\pi\left(s_{t+1}\right)$近似，定理2可通过$V_\pi\left(s_t\right) \approx r_t+\gamma \cdot V_\pi\left(s_{t+1}\right)$近似
 
+结合定理1与定理2，可以得到策略梯度更新公式：
 
+$\mathbf{g}\left(a_t\right) \approx \frac{\partial \ln \pi\left(a_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \cdot\left(r_t+\gamma \cdot v\left(s_{t+1} ; \mathbf{w}\right)-v\left(s_t ; \mathbf{w}\right)\right)$
 
+ 上述公式与$a_t$是否无关？    $s_{t+1}与a_t有关$
+
+$r_t+\gamma \cdot v\left(s_{t+1} ; \mathbf{w}\right)-v\left(s_t ; \mathbf{w}\right)$是价值网络对$a_t$的评价，这就是A2C中的Advantage意义所在
+
+<img src="images/11.png" alt="11" style="zoom:50%;" />
+
+---
+
+#### REINFORCE versus A2C
+
+*A2C的价值网络用于评价actor的表现，REINFORCE用的价值网络仅仅是baseline，不会评价动作好坏，仅仅用于降低随机梯度的方差*
+
+加入multi-step方法的A2C:
+
+TD target:
+
+$y_t=\sum_{i=0}^{m-1} \gamma^i \cdot r_{t+i}+\gamma^m \cdot v\left(s_{t+m} ; \mathbf{w}\right)$
+
+与one-step的A2C的区别只有$y_t$，其他一致
+$$
+单步的A2C：\ \ \ \ \ y_t=r_t+\gamma \cdot v(s_{t+1};w)  \\
+\uparrow 只使用单步奖励\\
+多步的A2C：\ \ \ \ \ \ \ y_t=\sum_{i=0}^{m-1} \gamma^i \cdot r_{t+i}+\gamma^m \cdot v\left(s_{t+m} ; \mathbf{w}\right)\\
+\downarrow 使用所有奖励\\
+REINFORCE：\ \ \ \ \ \ \ y_t=u_t=\sum_{i=t}^n\gamma^{i-t}\cdot r_i
+$$
+A2C与REINFORCE的区别在于前者使用的回报部分来自于真实观测，部分来自于价值网络的估计，后者完全来自于真实的奖励，**使用所有奖励消除掉了$\gamma^m \cdot v(s_{t+m};w)$的原因在于这种思想就是REINFORCE的思想，$y_t$的本质就在于给出一个接近于$s_t$真实值的一个估计，如果已经可以获得真实值就不需要估计**
+
+---
 
