@@ -638,7 +638,7 @@ A2C与REINFORCE的区别在于前者使用的回报部分来自于真实观测�
 
 将DQN用于连续动作可以考虑做离散化，网格化，动作的数量就对应网格点的数量
 
-<img src="/home/lmy/RL/DRL/images/12.png" alt="12" style="zoom:50%;" />
+<img src="images/12.png" alt="12" style="zoom:50%;" />
 
 
 
@@ -659,7 +659,7 @@ DPG是Actor-Critic方法
 
 价值网络：$q(s,a;w)$
 
-<img src="/home/lmy/RL/DRL/images/13.png" alt="13" style="zoom:50%;" />
+<img src="images/13.png" alt="13" style="zoom:50%;" />
 
 
 
@@ -698,7 +698,7 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 
 **随机策略与确定策略的不同：**
 
-![14](/home/lmy/RL/DRL/images/14.png)
+![14](images/14.png)
 
 
 
