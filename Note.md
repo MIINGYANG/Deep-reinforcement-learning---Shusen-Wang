@@ -508,3 +508,73 @@ b可以取$V_\pi(s_t)$，因为它接近于$Q_\pi(s_t,A_t)$但又与$A_t$无关
 
 #### REINFORCE with Baseline
 
+$Q_\pi\left(s_t, a_t\right)=\mathbb{E}\left[U_t \mid s_t, a_t\right]$
+
+$\frac{\partial V_\pi\left(s_t\right)}{\partial \boldsymbol{\theta}}=\mathbb{E}_{A_t \sim \pi}\left[\frac{\partial \ln \pi\left(A_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \cdot\left(Q_\pi\left(s_t, A_t\right)-V_\pi(s_t)\right)\right]$
+
+因此$u_t$是$Q_\pi(s_t,a_t)$的无偏估计，可用来近似$Q_\pi(s_t,a_t)$   (REINFORCE)方法：
+
+- 观测轨迹：$s_t, a_t, r_t, s_{t+1}, a_{t+1}, r_{t+1}, \cdots, s_n, a_n, r_n$
+- 计算return：$u_t=\sum_{i=t}^n\gamma^{i-t}\cdot r_i$
+- $u_t$是$Q_\pi(s_t,a_t)$的无偏估计
+
+$V_\pi(s_t)$可以用价值网络$v(s_t;w)$进行近似
+
+*REINFORCE方法是进行了回合制更新，即每次游戏结束后从1...n对网络进行n次更新*
+
+REINFORCE方法进行了三次近似：
+
+1. 策略梯度$\frac{\partial V_\pi\left(s_t\right)}{\partial \boldsymbol{\theta}}$的近似    (蒙特卡洛近似)
+2. 用$u_t$近似$Q_\pi(s_t,a_t)$   (蒙特卡洛近似)
+3. 用$V(s;w)$近似$V_\pi(s)$
+
+经过近似后的策略梯度：
+
+$\frac{\partial V_\pi\left(s_t\right)}{\partial \boldsymbol{\theta}} \approx \frac{\partial \ln \pi\left(a_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \cdot\left(u_t-v\left(s_t ; \mathbf{w}\right)\right)$
+
+通过梯度上升更新**策略网络**的参数$\theta$：
+
+$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta}+\beta \cdot \frac{\partial \ln \pi\left(a_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \cdot\left(u_t-v\left(s_t ; \mathbf{w}\right)\right)$
+
+令$u_t-v(s_t;w)=-\delta_t$，得到：
+
+$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta}-\beta \cdot \delta_t \cdot \frac{\partial \ln \pi\left(a_t \mid s_t ; \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}}$
+
+策略网络更新完成的标志是梯度为0,即$u_t-v(s_t;w)=0$，因此**价值网络**$V_\pi(s_t)$的预测误差为：
+
+$\delta_t=v\left(s_t ; \mathbf{w}\right)-u_t$
+
+更新价值网络的梯度可以写做：
+
+$\frac{\partial \delta_t^2 / 2}{\partial \mathbf{w}}=\delta_t \cdot \frac{\partial v\left(s_t ; \mathbf{w}\right)}{\partial \mathbf{w}}$
+
+做梯度下降：
+
+$\mathbf{w} \leftarrow \mathbf{w}-\alpha \cdot \delta_t \cdot \frac{\partial v\left(s_t ; \mathbf{w}\right)}{\partial \mathbf{w}}$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
