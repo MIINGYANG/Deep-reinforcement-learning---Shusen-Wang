@@ -116,6 +116,13 @@ Actor-Critic的作用：使Actor做出尽可能好的动作以提高状态价值
 
 **训练方法：通过TD算法更新评价网络的参数$\omega$ 通过策略梯度的方法更新策略函数的参数$\theta$**
 
+价值网络更新：
+
+1. 计算$q(s_t,a_t;w_t)$和$q(s_{t+1},a_{t+1};w_t)$，这里的$a_t和a_{t+1}$都是从策略中随机抽样得到的
+2. TD target: $r_t+\gamma \cdot q\left(s_{t+1}, a_{t+1} ; \mathbf{w}_t\right)$
+3. 损失：$\left.L(\mathbf{w})=\frac{1}{2}\left[q\left(s_t\right., a_t ; \mathbf{w}\right)-y_t\right]^2$
+4. 梯度下降：$\mathbf{w}_{t+1}=\mathbf{w}_t-\left.\alpha \cdot \frac{\partial L(\mathbf{w})}{\partial \mathbf{w}}\right|_{\mathbf{w}=\mathbf{w}_t}$
+
 注意使用策略梯度更新策略网络时，以下两种方式都可以：
 
 - $\theta_{t+1}=\theta_t+\beta \cdot q_t \cdot d_{\theta,t}$
