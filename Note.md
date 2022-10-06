@@ -713,6 +713,12 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 
 *随机策略梯度与确定策略梯度的不同在于前者是获得动作的概率分布通过随机采样的方式获得动作，后者是直接输出确定动作*
 
+纠正问题：
+
+>视频原文说$\mu$(mean)和$\sigma$(std)是状态s的函数的参数，感觉是错的，因为这样不好理解公式，本身策略函数就是在一个状态下选取a的函数，a才是函数的随机变量，因此提出纠正：
+>
+>基于公式$\pi(a \mid s)=\frac{1}{\sqrt{6.28} \sigma} \cdot \exp \left(-\frac{(a-\mu)^2}{2 \sigma^2}\right)$可以知道在状态s下选取动作a的策略函数，因此是$\mu$和$\sigma$是关于变量a的参数，使用(a|s)进行表述更加准确，因为是在不同状态下选取a
+
 动作a属于正态分布：
 
 - 针对动作维度为1：$\pi(a \mid s)=\frac{1}{\sqrt{6.28} \sigma} \cdot \exp \left(-\frac{(a-\mu)^2}{2 \sigma^2}\right)$
@@ -720,7 +726,7 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 
 需要解决：$\mu_i与\sigma_i$未知的问题
 
-采用神经网络$\mu(s;\theta^\mu)$近似$\vec{\mu}(s)$,但不使用神经网络近似$\vec{\sigma}(s)$，因为效果不好，更好的做法是近似$\rho_i=ln\sigma_i^2$，采用神经网络$\rho(s;\theta^\rho)$近似$\vec{\rho}$
+采用神经网络$\mu(a|s;\theta^\mu)$近似$\vec{\mu}(a|s)$,但不使用神经网络近似$\vec{\sigma}(a|s)$，因为效果不好，更好的做法是近似$\rho_i=ln\sigma_i^2$，采用神经网络$\rho(a|s;\theta^\rho)$近似$\vec{\rho}$
 
 <img src="images/16.png" alt="16" style="zoom:50%;" />
 
@@ -729,7 +735,7 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 步骤：
 
 - 观测到一个状态s
-- 使用神经网络$\mu(s;\theta^ \mu)和\rho(s;\theta^\rho)$分别近似均值$\vec{\hat{\mu}}$和方差$\vec{\hat\rho}$
+- 使用神经网络$\mu(a|s;\theta^ \mu)和\rho(a|s;\theta^\rho)$分别近似均值$\vec{\hat{\mu}}$和方差$\vec{\hat\rho}$
 - 计算$\hat{\sigma}_i^2=\exp \left(\hat{\rho}_i\right)$
 - 对$\vec a$中的$a_i$进行随机抽样，$a_i \sim \mathcal{N}\left(\hat{\mu}_i, \hat{\sigma}_i^2\right)$, for all $i=1, \cdots, d$
 
@@ -769,4 +775,4 @@ $\mathbf{g}(\mathbf{a})=\frac{\partial f(s, \mathbf{a} ; \boldsymbol{\theta})}{\
 
 $Q_\pi(s,a)$通过REINFORCE方法或者Actor-Critic方法获得，Actor-Critic方法需要添加价值网络$q(s,a;w)$，利用TD方法训练价值网络
 
-可以采用baseline的方式提升效果
+可以采用baseline的方式提升效果，也可以采用过去提到的提升效果的方法
