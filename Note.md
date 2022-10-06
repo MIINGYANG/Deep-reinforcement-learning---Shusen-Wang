@@ -704,6 +704,8 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 
 #### Stochastic Policy for Continuous Control
 
+*随机策略梯度与确定策略梯度的不同在于前者是获得动作的概率分布通过随机采样的方式获得动作，后者是直接输出确定动作*
+
 动作a属于正态分布：
 
 - 针对动作维度为1：$\pi(a \mid s)=\frac{1}{\sqrt{6.28} \sigma} \cdot \exp \left(-\frac{(a-\mu)^2}{2 \sigma^2}\right)$
@@ -724,5 +726,40 @@ $\boldsymbol{\theta}^{-} \leftarrow \tau \cdot \boldsymbol{\theta}+(1-\tau) \cdo
 - 计算$\hat{\sigma}_i^2=\exp \left(\hat{\rho}_i\right)$
 - 对$\vec a$中的$a_i$进行随机抽样，$a_i \sim \mathcal{N}\left(\hat{\mu}_i, \hat{\sigma}_i^2\right)$, for all $i=1, \cdots, d$
 
+训练策略网络的方法(下面两个方法结合都是为了获得随机梯度进行网络参数更新)：
 
+1. 辅助网络(用于计算梯度，训练网络)
+2. 策略梯度方法：(用于计算$Q_\pi(s,a)$)
+   - REINFORCE
+   - Actor-Critic
 
+随机策略梯度：
+
+$\mathbf{g}(a)=\frac{\partial \ln \pi(a \mid s ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \cdot Q_\pi(s, a)$
+
+策略网络：
+
+$\pi\left(\mathbf{a} \mid s ; \boldsymbol{\theta}^\mu, \boldsymbol{\theta}^\rho\right)=\prod_{i=1}^d \frac{1}{\sqrt{6.28} \sigma_i} \cdot \exp \left(-\frac{\left(a_i-\mu_i\right)^2}{2 \sigma_i^2}\right)$
+
+策略网络的自然对数：
+
+$\begin{aligned} \ln \pi\left(\mathbf{a} \mid s ; \boldsymbol{\theta}^\mu, \boldsymbol{\theta}^\rho\right) &=\sum_{i=1}^d\left[-\ln \sigma_i-\frac{\left(a_i-\mu_i\right)^2}{2 \sigma_i^2}\right]+\text { const } \\ &=\sum_{i=1}^d\left[-\frac{\rho_i}{2}-\frac{\left(a_i-\mu_i\right)^2}{2 \cdot \exp \left(\rho_i\right)}\right]+\text { const. } \end{aligned}$
+
+辅助网络：$f(s, \mathbf{a} ; \boldsymbol{\theta})=\sum_{i=1}^d\left[-\frac{\rho_i}{2}-\frac{\left(a_i-\mu_i\right)^2}{2 \cdot \exp \left(\rho_i\right)}\right]$    $\theta=(\theta^\mu,\theta^\rho)$
+
+辅助网络梯度反向传播：
+
+![17](images/17.png)
+
+通过辅助神经网络的方法建立了三个神经网络：$\mu(s;\theta^\mu),\rho(s;\theta^\rho)和f(s,a;\theta)$
+
+- $\mu(s;\theta^\mu)和\rho(s;\theta^\rho)$用于控制智能体
+- $f(s,a;\theta)$用于辅助训练，$\frac{\partial f}{\partial \theta}$用于梯度的反向传播
+
+因为$f(s, \mathrm{a} ; \boldsymbol{\theta})=\ln \pi(\mathrm{a} \mid s ; \boldsymbol{\theta})+\mathrm{const}$求梯度得到的结果与$ln\pi(a|s;\theta)$得到的结果相同，因此
+
+$\mathbf{g}(\mathbf{a})=\frac{\partial f(s, \mathbf{a} ; \boldsymbol{\theta})}{\partial \boldsymbol{\theta}} \cdot Q_\pi(s, \mathbf{a})$
+
+$Q_\pi(s,a)$通过REINFORCE方法或者Actor-Critic方法获得，Actor-Critic方法需要添加价值网络$q(s,a;w)$，利用TD方法训练价值网络
+
+可以采用baseline的方式提升效果
