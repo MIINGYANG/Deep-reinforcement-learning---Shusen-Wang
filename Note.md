@@ -776,3 +776,7 @@ $\mathbf{g}(\mathbf{a})=\frac{\partial f(s, \mathbf{a} ; \boldsymbol{\theta})}{\
 $Q_\pi(s,a)$通过REINFORCE方法或者Actor-Critic方法获得，Actor-Critic方法需要添加价值网络$q(s,a;w)$，利用TD方法训练价值网络
 
 可以采用baseline的方式提升效果，也可以采用过去提到的提升效果的方法
+
+---
+
+### 终
